@@ -1,0 +1,74 @@
+name: Scrape diario
+
+on:
+  schedule:
+    - cron: "17 9 * * *"   # 06:17 hora Argentina, todos los días
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: scrape
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Tests
+        run: python -m unittest discover tests
+
+      - name: Recuperar base de precios
+        run: |
+          mkdir -p data
+          if git fetch origin data --depth=1 2>/dev/null; then
+            git show FETCH_HEAD:prices.db > data/prices.db
+            echo "Base recuperada: $(du -h data/prices.db | cut -f1)"
+          else
+            echo "Primera corrida: base nueva"
+          fi
+
+      - name: Scrapear y generar sitio
+        run: python -m scentfinder.run --db data/prices.db --out public
+
+      - name: Guardar base en la rama data
+        run: |
+          tmp=$(mktemp -d)
+          cp data/prices.db "$tmp/prices.db"
+          cd "$tmp"
+          git init -q -b data
+          git config user.name "scent-finder-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add prices.db
+          git commit -q -m "Precios $(date -u +%F)"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" data
+
+      - name: Copia de respaldo de la base
+        uses: actions/upload-artifact@v4
+        with:
+          name: prices-db
+          path: data/prices.db
+          retention-days: 30
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      - id: deploy
+        uses: actions/deploy-pages@v4
