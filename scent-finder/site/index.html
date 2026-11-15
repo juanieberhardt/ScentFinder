@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scent Finder — precios de perfumes en Argentina</title>
+<style>
+:root{--bg:#f6f3ee;--card:#fff;--ink:#1d1b18;--mute:#6f6a62;--line:#e4dfd6;--accent:#8a3b12;--good:#17643a;--goodbg:#e3f1e8;--warn:#8a5a00;--warnbg:#fbefd2}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{padding:28px 20px 8px;max-width:1180px;margin:auto}
+h1{font:600 30px/1.1 Georgia,"Times New Roman",serif;margin:0;letter-spacing:-.01em}
+h1 span{color:var(--accent)}
+.sub{color:var(--mute);margin-top:6px;font-size:13.5px}
+main{max-width:1180px;margin:auto;padding:0 20px 60px}
+.tabs{display:flex;gap:4px;margin:18px 0 12px;border-bottom:1px solid var(--line)}
+.tabs button{border:0;background:none;padding:10px 14px;font:inherit;font-weight:600;color:var(--mute);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button[aria-selected=true]{color:var(--ink);border-color:var(--accent)}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;align-items:center}
+.filters input[type=search],.filters select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:inherit}
+.filters input[type=search]{flex:1 1 220px;min-width:180px}
+.filters label{font-size:13.5px;color:var(--mute);display:flex;gap:6px;align-items:center}
+.count{color:var(--mute);font-size:13px;margin:6px 0 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;cursor:pointer;display:flex;flex-direction:column;gap:8px;text-align:left;font:inherit;color:inherit}
+.card:hover,.card:focus-visible{border-color:var(--accent);outline:none}
+.card img{width:100%;height:150px;object-fit:contain;background:#fff;border-radius:8px}
+.brand{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.name{font-weight:600;line-height:1.25}
+.meta{font-size:12.5px;color:var(--mute)}
+.price{font:600 22px Georgia,serif}
+.price small{font:400 12.5px system-ui;color:var(--mute);margin-left:6px}
+.badges{display:flex;flex-wrap:wrap;gap:5px}
+.b{font-size:12px;font-weight:600;padding:3px 7px;border-radius:999px;background:var(--goodbg);color:var(--good)}
+.b.warn{background:var(--warnbg);color:var(--warn)}
+.b.plain{background:#efebe3;color:var(--mute)}
+.others{font-size:12.5px;color:var(--mute);border-top:1px dashed var(--line);padding-top:7px;margin-top:auto}
+.others div{display:flex;justify-content:space-between}
+.more{display:block;margin:22px auto;padding:10px 22px;font:inherit;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer}
+dialog{border:0;border-radius:14px;padding:0;max-width:720px;width:calc(100% - 24px);color:inherit}
+dialog::backdrop{background:rgba(29,27,24,.45)}
+.dlg{padding:22px}
+.dlg h2{font:600 21px/1.2 Georgia,serif;margin:2px 0 4px}
+.x{float:right;border:0;background:none;font-size:24px;cursor:pointer;color:var(--mute);line-height:1}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px}
+th{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);text-align:left;font-weight:600}
+th,td{padding:8px 6px;border-bottom:1px solid var(--line)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tr.oos td{color:var(--mute)}
+a{color:var(--accent)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12.5px;color:var(--mute)}
+.legend i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:5px}
+.note{font-size:12.5px;color:var(--mute);margin-top:10px}
+.how{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-size:13.5px;color:var(--mute);margin-bottom:14px}
+.empty{padding:50px 0;text-align:center;color:var(--mute)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Scent <span>Finder</span></h1>
+  <div class="sub" id="sub">Cargando…</div>
+</header>
+<main>
+  <div class="tabs" role="tablist">
+    <button role="tab" id="t-opp" aria-selected="true">Oportunidades</button>
+    <button role="tab" id="t-all" aria-selected="false">Todos los perfumes</button>
+  </div>
+  <div class="how" id="how">Una oportunidad es un perfume que hoy está al menos 12% más barato que en las otras tiendas, o 12% por debajo de lo que venía costando en esa misma tienda (mediana de los últimos 60 días). No se usa el “precio de lista” tachado.</div>
+  <div class="filters">
+    <input type="search" id="q" placeholder="Buscar perfume o marca…" aria-label="Buscar">
+    <select id="brand" aria-label="Marca"><option value="">Todas las marcas</option></select>
+    <select id="store" aria-label="Tienda"><option value="">Todas las tiendas</option></select>
+    <select id="kind" aria-label="Tipo">
+      <option value="perfume">Perfumes</option><option value="body">Body splash</option>
+      <option value="set">Sets y combos</option><option value="">Todo</option>
+    </select>
+    <select id="sort" aria-label="Orden">
+      <option value="score">Mejor oportunidad</option><option value="gap">Más barato vs. otras tiendas</option>
+      <option value="drop">Mayor baja de precio</option><option value="price">Precio: menor a mayor</option>
+      <option value="name">Nombre</option>
+    </select>
+    <label><input type="checkbox" id="multi"> En 2+ tiendas</label>
+  </div>
+  <div class="count" id="count"></div>
+  <div class="grid" id="grid"></div>
+  <button class="more" id="more" hidden>Ver más</button>
+</main>
+<dialog id="dlg"><div class="dlg" id="dlgc"></div></dialog>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money = n => '$' + Math.round(n).toLocaleString('es-AR');
+const pct = x => Math.round(x * 100) + '%';
+const safeUrl = u => /^https:\/\//.test(u || '') ? u : '#';
+const COLORS = ['#8a3b12', '#1f5f8b', '#17643a', '#7a3f8f', '#555'];
+const CONC = {EDP:'Eau de Parfum', EDT:'Eau de Toilette', EDC:'Colonia', PARFUM:'Parfum', EXT:'Extrait', BODY:'Body splash'};
+let D, H = null, tab = 'opp', shown = 60, list = [];
+
+function badges(p) {
+  let h = '';
+  if (p.gap >= 0.05) h += `<span class="b">${pct(p.gap)} menos que otras tiendas</span>`;
+  if (p.drop >= 0.05) h += `<span class="b">Bajó ${pct(p.drop)} vs. habitual</span>`;
+  if (p.atl) h += `<span class="b">Mínimo histórico</span>`;
+  if (p.verify) h += `<span class="b warn">Verificar coincidencia</span>`;
+  return h;
+}
+function meta(p) {
+  return [CONC[p.conc], p.ml ? p.ml + ' ml' : '', {M:'Hombre', F:'Mujer'}[p.gender]].filter(Boolean).join(' · ');
+}
+function card(p) {
+  const others = p.offers.filter(o => o.s !== p.store).map(o =>
+    `<div><span>${esc(D.stores[o.s].name)}</span><span>${o.k ? money(o.p) : 'sin stock'}</span></div>`).join('');
+  return `<button class="card" data-id="${esc(p.id)}">
+    ${p.img ? `<img loading="lazy" alt="" src="${esc(safeUrl(p.img))}">` : ''}
+    <div><div class="brand">${esc(p.brand)}</div><div class="name">${esc(p.name)}</div><div class="meta">${esc(meta(p))}</div></div>
+    <div class="price">${money(p.price)}<small>en ${esc(D.stores[p.store].name)}</small></div>
+    <div class="badges">${badges(p)}</div>
+    ${others ? `<div class="others">${others}</div>` : ''}</button>`;
+}
+function apply() {
+  const q = $('q').value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const b = $('brand').value, s = $('store').value, k = $('kind').value, multi = $('multi').checked, sort = $('sort').value;
+  list = D.products.filter(p =>
+    (tab !== 'opp' || p.opp) && (!b || p.brand === b) && (!k || p.kind === k) &&
+    (!s || p.offers.some(o => o.s === s && o.k)) && (!multi || p.offers.length > 1) &&
+    q.every(w => p._t.includes(w)));
+  const by = {score: (a, c) => c.score - a.score, gap: (a, c) => (c.gap ?? -9) - (a.gap ?? -9),
+    drop: (a, c) => (c.drop ?? -9) - (a.drop ?? -9), price: (a, c) => a.price - c.price,
+    name: (a, c) => a._t.localeCompare(c._t)}[sort];
+  list.sort(by); shown = 60; render();
+}
+function render() {
+  $('count').textContent = list.length.toLocaleString('es-AR') + (tab === 'opp' ? ' oportunidades' : ' productos');
+  $('grid').innerHTML = list.length ? list.slice(0, shown).map(card).join('')
+    : `<div class="empty" style="grid-column:1/-1">${tab === 'opp' ? 'Todavía no hay oportunidades con estos filtros. Las bajas de precio aparecen cuando hay al menos 14 días de historial.' : 'Sin resultados.'}</div>`;
+  $('more').hidden = shown >= list.length;
+}
+function chart(h) {
+  const stores = Object.keys(h), today = D.generated, pts = [];
+  let lo = Infinity, hi = 0, t0 = today;
+  for (const s of stores) for (const [d, p, k] of h[s]) { if (k) { lo = Math.min(lo, p); hi = Math.max(hi, p); } if (d < t0) t0 = d; }
+  const day = d => Math.round((Date.parse(d) - Date.parse(t0)) / 864e5), n = Math.max(day(today), 1);
+  if (!isFinite(lo)) return '';
+  if (hi === lo) { hi *= 1.05; lo *= 0.95; }
+  const W = 660, Hh = 200, L = 62, R = 10, T = 10, B = 24;
+  const x = d => L + (W - L - R) * d / n, y = p => T + (Hh - T - B) * (1 - (p - lo) / (hi - lo));
+  let svg = `<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Historial de precios" style="width:100%;height:auto">`;
+  for (const v of [lo, (lo + hi) / 2, hi]) svg += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="#e4dfd6"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="#6f6a62">${money(v)}</text>`;
+  svg += `<text x="${L}" y="${Hh - 6}" font-size="11" fill="#6f6a62">${esc(t0)}</text><text x="${W - R}" y="${Hh - 6}" text-anchor="end" font-size="11" fill="#6f6a62">${esc(today)}</text>`;
+  stores.forEach((s, i) => {
+    let d = '', pen = false; const rows = h[s];
+    rows.forEach(([dt, p, k], j) => {
+      const x0 = x(day(dt)), x1 = x(j + 1 < rows.length ? day(rows[j + 1][0]) : n);
+      if (!k) { pen = false; return; }
+      d += `${pen ? 'L' : 'M'}${x0.toFixed(1)},${y(p).toFixed(1)}L${x1.toFixed(1)},${y(p).toFixed(1)}`; pen = true;
+    });
+    const last = rows[rows.length - 1];
+    svg += `<path d="${d}" fill="none" stroke="${COLORS[i % 5]}" stroke-width="2"/>`;
+    if (last[2]) svg += `<circle cx="${x(n)}" cy="${y(last[1])}" r="3.5" fill="${COLORS[i % 5]}"/>`;
+  });
+  svg += '</svg><div class="legend">' + stores.map((s, i) => `<span><i style="background:${COLORS[i % 5]}"></i>${esc(D.stores[s].name)}</span>`).join('') + '</div>';
+  return svg;
+}
+async function open(id) {
+  const p = D.products.find(p => p.id === id); if (!p) return;
+  const rows = p.offers.map(o => `<tr class="${o.k ? '' : 'oos'}"><td>${esc(D.stores[o.s].name)}</td><td>${esc(o.n)}</td>
+    <td class="num">${o.k ? money(o.p) : 'sin stock'}</td><td><a href="${esc(safeUrl(o.u))}" target="_blank" rel="noopener noreferrer">Ver</a></td></tr>`).join('');
+  const why = { ean: 'Coincidencia por código de barras (EAN).', nombre: 'Coincidencia por nombre, concentración y tamaño: revisá que sea el mismo producto antes de comprar.', single: 'Solo se encontró en una tienda.' }[p.match];
+  $('dlgc').innerHTML = `<button class="x" aria-label="Cerrar" onclick="$('dlg').close()">×</button>
+    <div class="brand">${esc(p.brand)}</div><h2>${esc(p.name)}</h2><div class="meta">${esc(meta(p))}</div>
+    <div class="badges" style="margin-top:8px">${badges(p)}</div>
+    <table><thead><tr><th>Tienda</th><th>Publicación</th><th class="num">Precio</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+    ${p.usual ? `<div class="meta">Precio habitual en ${esc(D.stores[p.store].name)} (mediana 60 días): ${money(p.usual)}</div>` : ''}
+    <div id="chart" style="margin-top:12px" class="meta">Cargando historial…</div><div class="note">${why}</div>`;
+  $('dlg').showModal();
+  try { H = H || await fetch('history.json').then(r => r.json()); $('chart').innerHTML = H[id] ? chart(H[id]) : ''; }
+  catch { $('chart').textContent = 'No se pudo cargar el historial.'; }
+}
+fetch('data.json').then(r => r.json()).then(d => {
+  D = d;
+  for (const p of d.products) p._t = (p.brand + ' ' + p.name).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const brands = [...new Set(d.products.map(p => p.brand).filter(Boolean))].sort();
+  $('brand').insertAdjacentHTML('beforeend', brands.map(b => `<option>${esc(b)}</option>`).join(''));
+  $('store').insertAdjacentHTML('beforeend', Object.entries(d.stores).map(([k, v]) => `<option value="${esc(k)}">${esc(v.name)}</option>`).join(''));
+  const fails = d.runs.filter(r => !r.ok).map(r => d.stores[r.store]?.name || r.store);
+  $('sub').textContent = `Actualizado el ${d.generated} · ${Object.keys(d.stores).length} tiendas · ${d.products.length.toLocaleString('es-AR')} productos` + (fails.length ? ` · sin datos hoy de: ${fails.join(', ')}` : '');
+  apply();
+}).catch(() => { $('sub').textContent = 'No se pudieron cargar los datos.'; });
+for (const id of ['q', 'brand', 'store', 'kind', 'sort', 'multi']) $(id).addEventListener('input', apply);
+for (const t of ['opp', 'all']) $('t-' + t).addEventListener('click', () => {
+  tab = t; $('t-opp').setAttribute('aria-selected', t === 'opp'); $('t-all').setAttribute('aria-selected', t === 'all');
+  $('how').hidden = t !== 'opp'; apply();
+});
+$('more').addEventListener('click', () => { shown += 60; render(); });
+$('grid').addEventListener('click', e => { const c = e.target.closest('.card'); if (c) open(c.dataset.id); });
+$('dlg').addEventListener('click', e => { if (e.target === $('dlg')) $('dlg').close(); });
+</script>
+</body>
+</html>
